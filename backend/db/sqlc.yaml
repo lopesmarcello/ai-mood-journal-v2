@@ -1,0 +1,8 @@
+version: "1"
+packages:
+  - name: "db"
+    path: "sqlc"
+    engine: "postgresql"
+    schema: "./migrations"
+    queries: "./queries"
+    sql_package: "pgx/v5"
