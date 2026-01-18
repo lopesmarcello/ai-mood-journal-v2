@@ -18,7 +18,7 @@ type AIClient struct {
 
 func NewAIClient(apiKey string, systemPrompt string) *AIClient {
 	config := openai.DefaultConfig(apiKey)
-	config.BaseURL = "https://routellm.abacus.ai/v1"
+	config.BaseURL = "https://api.groq.com/openai/v1"
 
 	return &AIClient{
 		client:       openai.NewClientWithConfig(config),
@@ -37,6 +37,7 @@ func (c *AIClient) GenerateInsight(ctx context.Context, content string) (*dto.AI
 		resp, err := c.client.CreateChatCompletion(
 			ctx,
 			openai.ChatCompletionRequest{
+				Model: "llama-3.1-8b-instant",
 				Messages: []openai.ChatCompletionMessage{
 					{Role: openai.ChatMessageRoleSystem, Content: fullSystemPrompt},
 					{Role: openai.ChatMessageRoleUser, Content: content},
