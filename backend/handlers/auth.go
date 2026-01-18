@@ -11,11 +11,13 @@ import (
 
 type AuthHandler struct {
 	authService *services.AuthService
+	appEnv      string
 }
 
-func NewAuthHandler(s *services.AuthService) *AuthHandler {
+func NewAuthHandler(s *services.AuthService, appEnv string) *AuthHandler {
 	return &AuthHandler{
 		authService: s,
+		appEnv:      appEnv,
 	}
 }
 
@@ -64,15 +66,20 @@ func (h *AuthHandler) TogglePro(c *gin.Context) {
 		foundUser, err := h.authService.DowngradePro(c.Request.Context(), userID)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, err.Error())
+			return
 		}
 		newUser = foundUser
 	} else {
 		foundUser, err := h.authService.UpgradeToPro(c.Request.Context(), userID)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, err.Error())
+			return
 		}
 		newUser = foundUser
 	}
+
+	newToken, _ := h.authService.GenerateToken(userID, newUser.IsPro.Bool)
+	h.setAuthCookie(c, newToken)
 
 	c.JSON(http.StatusOK, gin.H{"user_id": newUser.ID, "is_pro": newUser.IsPro})
 }
@@ -93,6 +100,7 @@ func (h *AuthHandler) Logout(c *gin.Context) {
 }
 
 func (h *AuthHandler) setAuthCookie(c *gin.Context, token string) {
+	secure := h.appEnv == "production"
 	// name, value, maxAge (seconds), path, domain, secure, httpOnly
-	c.SetCookie("auth_token", token, 3600*24*30, "/", "", false, true)
+	c.SetCookie("auth_token", token, 3600*24*30, "/", "", secure, true)
 }
