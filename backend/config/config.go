@@ -12,6 +12,7 @@ type Config struct {
 	JWTSecret   string
 	Port        string
 	AppEnv      string
+	RouteLLMKey string
 }
 
 func Load() (*Config, error) {
@@ -22,6 +23,7 @@ func Load() (*Config, error) {
 		JWTSecret:   getEnv("JWT_SECRET", ""),
 		Port:        getEnv("PORT", "8080"),
 		AppEnv:      getEnv("APP_ENV", "development"),
+		RouteLLMKey: getEnv("ROUTELLM_API_KEY", ""),
 	}
 
 	return cfg, nil
