@@ -57,6 +57,8 @@ func main() {
 		protected.POST("/auth/logout", authHandler.Me)
 
 		protected.POST("/entries", journalHandler.Create)
+		protected.GET("/entries", journalHandler.List)
+		protected.GET("/entries/:id", journalHandler.GetByID)
 	}
 
 	log.Printf("Server starting on port %s\n", cfg.Port)

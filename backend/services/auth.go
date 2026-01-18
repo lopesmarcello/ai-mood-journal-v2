@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/jackc/pgx/v5/pgtype"
 	db "github.com/lopesmarcello/ai-journal/db/sqlc"
 	"github.com/lopesmarcello/ai-journal/dto"
 	"golang.org/x/crypto/bcrypt"
@@ -89,4 +90,18 @@ func (s *AuthService) GenerateToken(userID uint, isPro bool) (string, error) {
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	return token.SignedString([]byte(s.jwtSecret))
+}
+
+func (s *AuthService) UpgradeToPro(ctx context.Context, userID uint) (db.User, error) {
+	return s.queries.SetUserPro(ctx, db.SetUserProParams{
+		ID:    int32(userID),
+		IsPro: pgtype.Bool{Bool: true, Valid: true},
+	})
+}
+
+func (s *AuthService) DowngradePro(ctx context.Context, userID uint) (db.User, error) {
+	return s.queries.SetUserPro(ctx, db.SetUserProParams{
+		ID:    int32(userID),
+		IsPro: pgtype.Bool{Bool: false, Valid: true},
+	})
 }

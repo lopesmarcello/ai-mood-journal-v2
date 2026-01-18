@@ -17,3 +17,4 @@ WHERE user_id = $1 AND id = $2 LIMIT 1;
 -- name: CountEntrieByUser :one
 SELECT COUNT(*) FROM journal_entries
 WHERE user_id = $1;
+
