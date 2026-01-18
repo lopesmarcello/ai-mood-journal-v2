@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	db "github.com/lopesmarcello/ai-journal/db/sqlc"
 	"github.com/lopesmarcello/ai-journal/dto"
 	"github.com/lopesmarcello/ai-journal/services"
 )
@@ -51,6 +52,29 @@ func (h *AuthHandler) Login(c *gin.Context) {
 
 	h.setAuthCookie(c, token)
 	c.JSON(http.StatusOK, user)
+}
+
+func (h *AuthHandler) TogglePro(c *gin.Context) {
+	userID := c.GetUint("user_id")
+	isPro := c.GetBool("is_pro")
+
+	var newUser db.User
+
+	if isPro {
+		foundUser, err := h.authService.DowngradePro(c.Request.Context(), userID)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, err.Error())
+		}
+		newUser = foundUser
+	} else {
+		foundUser, err := h.authService.UpgradeToPro(c.Request.Context(), userID)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, err.Error())
+		}
+		newUser = foundUser
+	}
+
+	c.JSON(http.StatusOK, gin.H{"user_id": newUser.ID, "is_pro": newUser.IsPro})
 }
 
 func (h *AuthHandler) Me(c *gin.Context) {
