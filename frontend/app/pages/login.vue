@@ -14,7 +14,7 @@ async function handleLogin() {
       body: { email: email.value, password: password.value }
     })
     await auth.fetchUser()
-    navigateTo('/dashboard')
+    navigateTo('/')
   } catch (err) {
     error.value = 'Invalid email or password'
   } finally {

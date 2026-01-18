@@ -3,6 +3,12 @@ const auth = useAuthStore()
 const entries = ref([])
 const loading = ref(true)
 
+const router = useRouter()
+
+function viewEntry(entry) {
+  router.push({ path: '/', query: { id: String(entry.id) } })
+}
+
 async function fetchHistory() {
   try {
     const response = await $fetch('/api/entries?page=1')
@@ -34,8 +40,8 @@ provide('refreshHistory', fetchHistory)
         </div>
 
         <template v-else>
-          <button v-for="entry in entries" :key="entry.id"
-            class="w-full text-left p-3 rounded-lg hover:bg-slate-50 transition-colors group">
+          <button v-for="entry in entries" :key="entry.id" type="button"
+            class="w-full cursor-pointer text-left p-3 rounded-lg hover:bg-slate-50" @click="viewEntry(entry)">
             <p class="text-xs text-slate-400 mb-1">
               {{ new Date(entry.created_at).toLocaleDateString() }}
             </p>
