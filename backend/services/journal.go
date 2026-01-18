@@ -2,7 +2,6 @@ package services
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
 
 	"github.com/jackc/pgx/v5/pgtype"
@@ -44,6 +43,9 @@ func (s *JournalService) CreateEntry(ctx context.Context, userID int32, content 
 		UserID:  pgtype.Int4{Int32: userID, Valid: true},
 		Content: content,
 	})
+	if err != nil {
+		return nil, nil, err
+	}
 
 	var insight *db.Insight
 
@@ -71,7 +73,7 @@ func (s *JournalService) CreateEntry(ctx context.Context, userID int32, content 
 				}
 			}
 		} else {
-			fmt.Printf("AI Insight failed: %w", aiErr)
+			slog.Error("AI Insight failed:", "error", aiErr)
 		}
 	}
 
@@ -80,4 +82,46 @@ func (s *JournalService) CreateEntry(ctx context.Context, userID int32, content 
 	}
 
 	return &entry, insight, nil
+}
+
+func (s *JournalService) ListEntries(ctx context.Context, userID int32, page int32) ([]db.JournalEntry, bool, error) {
+	limit := int32(10)
+	offset := (page - 1) * limit
+
+	entries, err := s.queries.ListEntriesByUser(ctx, db.ListEntriesByUserParams{
+		UserID: pgtype.Int4{Int32: userID, Valid: true},
+		Limit:  limit + 1,
+		Offset: offset,
+	})
+	if err != nil {
+		return nil, false, err
+	}
+
+	hasMore := false
+	if len(entries) > int(limit) {
+		hasMore = true
+		entries = entries[:limit]
+	}
+
+	return entries, hasMore, nil
+}
+
+func (s *JournalService) GetEntryDetail(ctx context.Context, userID int32, entryID int32) (*db.JournalEntry, *db.Insight, error) {
+	entry, err := s.queries.GetSingleEntryByIDs(ctx, db.GetSingleEntryByIDsParams{
+		UserID: pgtype.Int4{Int32: userID, Valid: true},
+		ID:     entryID,
+	})
+	if err != nil {
+		return nil, nil, err
+	}
+
+	insight, err := s.queries.GetInsightByEntryID(ctx, pgtype.Int4{
+		Int32: entryID,
+		Valid: true,
+	})
+	if err != nil {
+		return &entry, nil, err
+	}
+
+	return &entry, &insight, nil
 }
