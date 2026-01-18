@@ -37,9 +37,23 @@ func (h *JournalHandler) Create(c *gin.Context) {
 		return
 	}
 
+	insightResponse := &dto.AIInsightResponse{
+		Summary:    insight.Summary,
+		Themes:     insight.Themes,
+		Feelings:   insight.Feelings,
+		Reflection: insight.FollowUp,
+	}
+
+	entryResponse := &dto.CreateEntryResponse{
+		Content:   entry.Content,
+		CreatedAt: entry.CreatedAt.Time,
+		ID:        entry.ID,
+		UserID:    entry.UserID.Int32,
+	}
+
 	c.JSON(http.StatusCreated, gin.H{
-		"entry":   entry,
-		"insight": insight,
+		"entry":   entryResponse,
+		"insight": insightResponse,
 	})
 }
 
@@ -55,8 +69,20 @@ func (h *JournalHandler) List(c *gin.Context) {
 		return
 	}
 
+	entriesResponse := make([]dto.CreateEntryResponse, 0, len(entries))
+	for _, e := range entries {
+		entriesResponse = append(entriesResponse,
+			dto.CreateEntryResponse{
+				Content:   e.Content,
+				CreatedAt: e.CreatedAt.Time,
+				ID:        e.ID,
+				UserID:    e.UserID.Int32,
+			},
+		)
+	}
+
 	c.JSON(http.StatusOK, dto.PaginatedResponse{
-		Data: entries,
+		Data: entriesResponse,
 		Pagination: dto.Pagination{
 			CurrentPage: int32(page),
 			PageSize:    10,

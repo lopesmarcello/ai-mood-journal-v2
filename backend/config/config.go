@@ -13,6 +13,7 @@ type Config struct {
 	Port        string
 	AppEnv      string
 	RouteLLMKey string
+	GroqAPIKey  string
 }
 
 func Load() (*Config, error) {
@@ -24,6 +25,7 @@ func Load() (*Config, error) {
 		Port:        getEnv("PORT", "8080"),
 		AppEnv:      getEnv("APP_ENV", "development"),
 		RouteLLMKey: getEnv("ROUTELLM_API_KEY", ""),
+		GroqAPIKey:  getEnv("GROQ_API_KEY", ""),
 	}
 
 	return cfg, nil
