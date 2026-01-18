@@ -107,8 +107,22 @@ func (h *JournalHandler) GetByID(c *gin.Context) {
 		return
 	}
 
+	insightResponse := &dto.AIInsightResponse{
+		Summary:    insight.Summary,
+		Themes:     insight.Themes,
+		Feelings:   insight.Feelings,
+		Reflection: insight.FollowUp,
+	}
+
+	entryResponse := &dto.CreateEntryResponse{
+		Content:   entry.Content,
+		CreatedAt: entry.CreatedAt.Time,
+		ID:        entry.ID,
+		UserID:    entry.UserID.Int32,
+	}
+
 	c.JSON(http.StatusOK, gin.H{
-		"entry":   entry,
-		"insight": insight,
+		"entry":   entryResponse,
+		"insight": insightResponse,
 	})
 }
