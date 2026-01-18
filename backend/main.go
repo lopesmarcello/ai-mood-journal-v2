@@ -3,7 +3,9 @@ package main
 import (
 	"context"
 	"log"
+	"time"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/lopesmarcello/ai-journal/ai"
@@ -31,13 +33,22 @@ func main() {
 
 	authService := services.NewAuthService(queries, cfg.JWTSecret)
 
-	authHandler := handlers.NewAuthHandler(authService)
+	authHandler := handlers.NewAuthHandler(authService, cfg.AppEnv)
 
 	r := gin.Default()
 
+	r.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"http://localhost:3000/", "http://localhost:5173"},
+		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
+	}))
+
 	prompt, err := ai.LoadSystemPrompt("prompts/therapist_v1.txt")
 	if err != nil {
-		log.Fatalf("Failed to load prompt: %w", err)
+		log.Fatalf("Failed to load prompt: %s", err.Error())
 	}
 
 	aiClient := ai.NewAIClient(cfg.RouteLLMKey, prompt)
@@ -48,6 +59,7 @@ func main() {
 	{
 		authGroup.POST("/register", authHandler.Register)
 		authGroup.POST("/login", authHandler.Login)
+		authGroup.PATCH("/toggle-pro", authHandler.TogglePro)
 	}
 
 	protected := r.Group("/")
